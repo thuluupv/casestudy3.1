@@ -2,6 +2,7 @@ const fs = require('fs');
 const qs = require('qs');
 const mysql = require('mysql');
 const url = require("url");
+let indexupdate
 const connection = mysql.createConnection({
     host: 'localhost',
     user: 'root',
@@ -223,7 +224,6 @@ class Appcontrol {
         }
         async deletestudent(req, res) {
             let index = +qs.parse(url.parse(req.url).query).id
-            console.log(index)
             const sql = `DELETE FROM Students WHERE idstudent = ${index}`
             await connection.query(sql, (err, data) => {
                 if (err) {
@@ -232,9 +232,69 @@ class Appcontrol {
                     res.writeHead(301, {'location':'/homeadmin'})
                     res.end();
                 }
+            })
+        }
+        showupdatestudent(req, res) {
+        indexupdate = +qs.parse(url.parse(req.url).query).id;
+        let datas = fs.readFileSync('./views/adminviews/updatestudent.html', 'utf8');
+        res.writeHead(200, {'Content-Type': 'text/html'});
+        res.write(datas);
+        res.end();
+
+        }
+        async updatestudent(req, res) {
+            let data ='';
+            req.on('data', function(chunk){
+                data += chunk;
+            })
+            req.on('end', async function () {
+                let datacheck = qs.parse(data);
+                console.log(datacheck)
+                let newname = datacheck.name;
+                let newdob = datacheck.dob;
+                let newclassname = datacheck.classname;
+                let newmath = datacheck.math;
+                let newlitter = datacheck.litter;
+                let newenglish = datacheck.english;
+
+                const sql1 = `UPDATE students SET studentName = '${newname}', DOB = '${newdob}', className = '${newclassname}' where idstudent = ${indexupdate}`
+                await connection.query(sql1, function(err,data){
+                    if (err) {
+                        console.log(err.message)}
+                    else {
+                        const sql2 = `UPDATE Grades SET score = '${newmath}' where idstudent = ${indexupdate} and idsubject = 1`
+                        connection.query(sql2, function(err,data){
+                            if (err) {
+                                console.log(err.message)
+                            }
+                            else {
+                                const sql3 = `UPDATE Grades SET score = '${newlitter}' where idstudent = ${indexupdate} and idsubject = 2`
+                                connection.query(sql2, function(err,data) {
+                                    if (err) {
+                                        console.log(err.message)
+                                    }
+                                    else {
+                                        const sql4 = `UPDATE Grades SET score = '${newenglish}' where idstudent = ${indexupdate} and idsubject = 3`
+                                        connection.query(sql4, function(err,data) {
+                                            if (err) {
+                                                console.log(err.message)
+                                            }
+                                            else {
+                                                res.writeHead(301,{'location':'/homeadmin'})
+                                                res.end()
+                                            }
+
+                                    })
+                                    }
+                                })
+                            }
+                        })
+                    }
+                })
 
 
             })
+
         }
 
 
