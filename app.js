@@ -35,6 +35,12 @@ let server = http.createServer((req, res)=> {
             break;
             case '/showallscore': appcontrol.showallscore(req, res);
                 break;
+            case '/students/search': appcontrol.searchstudent(req, res);
+            break;
+            case '/addnewstudent': appcontrol.addnewstudent(req, res);
+            break;
+            case '/delete': appcontrol.deletestudent(req, res);
+            break;
         }
 
     }
