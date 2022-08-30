@@ -2,7 +2,9 @@ const fs = require('fs');
 const qs = require('qs');
 const mysql = require('mysql');
 const url = require("url");
-let indexupdate
+let checkLoginadmin = false;
+let checkLoginuser = false;
+let indexupdate;
 const connection = mysql.createConnection({
     host: 'localhost',
     user: 'root',
@@ -29,9 +31,9 @@ class Appcontrol {
         })
     }
      async showHomeadmin(req, res) {
-
+        if (checkLoginadmin){
             const sql = 'SELECT * FROM averagescore'
-             await connection.query(sql, (err, data) => {
+            await connection.query(sql, (err, data) => {
                 if (err) {
                     throw new Error(err);
                 }
@@ -48,27 +50,56 @@ class Appcontrol {
 </td>`;
                     html += '</tr>';
                 })
-                 fs.readFile('./views/homeadmin.html', 'utf8', (err, datahtml) => {
-                     if (err) {
-                         throw new Error(err);
-                     }
-                     datahtml = datahtml.replace('{showlist}',html)
-                     res.writeHead(200, {'Content-Type': 'text/html'});
-                     res.write(datahtml);
-                     res.end();
-                 })
-
+                fs.readFile('./views/homeadmin.html', 'utf8', (err, datahtml) => {
+                    if (err) {
+                        throw new Error(err);
+                    }
+                    datahtml = datahtml.replace('{showlist}',html)
+                    res.writeHead(200, {'Content-Type': 'text/html'});
+                    res.write(datahtml);
+                    res.end();
+                })
             })
+        } else {
+            res.writeHead(301, {'location': '/login'});
+            res.end();
+        }
+
+
     }
-    showHomeuser(req, res){
-        fs.readFile('./views/homeuser.html', 'utf8', (err, data) => {
+    async showHomeuser(req, res){
+if (checkLoginuser){
+    const sql = 'SELECT * FROM averagescore'
+    await connection.query(sql, (err, data) => {
+        if (err) {
+            throw new Error(err);
+        }
+        let html =''
+        data.forEach(item => {
+            html += '<tr>';
+            html += `<td> ${item.idstudent}</td>`;
+            html += `<td> ${item.studentname}</td>`;
+            html += `<td> ${item.className}</td>`;
+            html += `<td> ${item.TB}</td>`;
+            html += `<td> 
+<a href="/showallscore?id=${item.idstudent}"><button class = "btn btn-link btn-sm">chi tiết</button>  </a>
+</td>`;
+            html += '</tr>';
+        })
+        fs.readFile('./views/homeuser.html', 'utf8', (err, datahtml) => {
             if (err) {
                 throw new Error(err);
             }
+            datahtml = datahtml.replace('{showlist}',html)
             res.writeHead(200, {'Content-Type': 'text/html'});
-            res.write(data);
+            res.write(datahtml);
             res.end();
         })
+    })
+}else{
+    res.writeHead(301, {'location': '/login'});
+    res.end();
+}
     }
     async checkLogin(req, res) {
         let data ='';
@@ -82,8 +113,8 @@ class Appcontrol {
             if (datacheck.username == 'admin' && datacheck.password == 'admin') {
                 res.writeHead(301,{'location':'./homeadmin'})
                 res.end();
+                checkLoginadmin = true;
             } else {
-                //let result;
                 const sql = `SELECT * FROM students`;
                 await connection.query(sql, (err, data) => {
                     if (err) {
@@ -93,12 +124,11 @@ class Appcontrol {
                             if (item.idstudent == datacheck.username && item.DOB == datacheck.password) {
                                 res.writeHead(301,{'location':'./homeuser'})
                                 res.end()
+                                checkLoginuser = true;
                             }
                         })
                 });
             }
-
-
         })
 
     }
@@ -128,7 +158,6 @@ class Appcontrol {
                 res.write(datahtml);
                 res.end();
             })
-
         })
         }
     async searchstudent(req, res) {
@@ -147,9 +176,9 @@ class Appcontrol {
                     html += `<td> ${item.studentname}</td>`;
                     html += `<td> ${item.className}</td>`;
                     html += `<td> ${item.TB}</td>`;
-                    html += `<td><a href="/update?id=${item.idstudent}" class="edit" data-toggle="modal"><i class="material-icons" data-toggle="tooltip" title="Edit">&#xE254;</i></a>
-<a href="/delete?id=${item.idstudent}"><button class = "btn btn-primary btn-sm">xoá</button></a>  
-<a href="/showallscore?id=${item.idstudent}"><button class = "btn btn-primary btn-sm">chi tiết</button>  </a>
+                    html += `<td><a href="/update?id=${item.idstudent}"><button class = "btn btn-danger btn-sm">Sửa HS</button></a>
+<a href="/delete?id=${item.idstudent}"><button class = "btn btn-primary btn-sm">Xoá HS</button></a>  
+<a href="/showallscore?id=${item.idstudent}"><button class = "btn btn-link btn-sm">chi tiết</button>  </a>
 </td>`;
                     html += '</tr>';
                 })
@@ -189,38 +218,12 @@ class Appcontrol {
                             if (err) {
                                 throw new Error(err);
                             }
-                            let html =''
-                            data.forEach(item => {
-                                html += '<tr>';
-                                html += `<td> ${item.idstudent}</td>`;
-                                html += `<td> ${item.studentname}</td>`;
-                                html += `<td> ${item.className}</td>`;
-                                html += `<td> ${item.TB}</td>`;
-                                html += `<td><a href="/update?id=${item.idstudent}" class="edit" data-toggle="modal"><i class="material-icons" data-toggle="tooltip" title="Edit">&#xE254;</i></a>
-<a href="/delete?id=${item.idstudent}"><button class = "btn btn-primary btn-sm">xoá</button></a>
-<a href="/showallscore?id=${item.idstudent}"><button class = "btn btn-primary btn-sm">chi tiết</button>  </a>
-</td>`;
-                                html += '</tr>';
-                            })
-                            fs.readFile('./views/homeadmin.html', 'utf8', (err, datahtml) => {
-                                if (err) {
-                                    throw new Error(err);
-                                }
-                                datahtml = datahtml.replace('{showlist}',html)
-                                res.writeHead(200, {'Content-Type': 'text/html'});
-                                res.write(datahtml);
-                                res.end();
-                            })
-
-                        })
-
-
+                             res.writeHead(301, {'location': '/homeadmin'})
+                             res.end();
+                         })
                     })
                 }
-
-
             })
-
         }
         async deletestudent(req, res) {
             let index = +qs.parse(url.parse(req.url).query).id
@@ -283,7 +286,6 @@ class Appcontrol {
                                                 res.writeHead(301,{'location':'/homeadmin'})
                                                 res.end()
                                             }
-
                                     })
                                     }
                                 })
@@ -291,15 +293,7 @@ class Appcontrol {
                         })
                     }
                 })
-
-
             })
-
         }
-
-
     }
-
-
-
 module.exports = Appcontrol

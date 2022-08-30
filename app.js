@@ -7,22 +7,6 @@ const Appcontrol = require('./controller/appcontrol');
 const port = 8088;
 let appcontrol = new Appcontrol();
 
-// const connection = mysql.createConnection({
-//     host: 'localhost',
-//     user: 'root',
-//     password: '12345',
-//     database: 'casestudy3',
-//     charset: 'utf8_general_ci'
-// });
-//
-// connection.connect(function (err) {
-//     if (err) {
-//         throw err.stack;
-//     }
-//     else
-//         console.log("connect success");
-// })
-
 let server = http.createServer((req, res)=> {
     let urlpath = url.parse(req.url).pathname;
     if (req.method === 'GET'){
