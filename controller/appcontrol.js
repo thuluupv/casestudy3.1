@@ -2,6 +2,9 @@ const fs = require('fs');
 const qs = require('qs');
 const mysql = require('mysql');
 const url = require("url");
+const cookie = require('cookie');
+const {serialize} = require("cookie");
+
 let checkLoginadmin = false;
 let checkLoginuser = false;
 let indexupdate;
@@ -21,15 +24,38 @@ connection.connect(function (err) {
 })
 class Appcontrol {
     showlogin(req, res) {
+        let cookieUserLogin = {
+            username:'',
+            password:''
+        }
+        if(req.headers.cookie){
+            let cookies = cookie.parse(req.headers.cookie)
+            if (cookies && cookies.user){
+                cookieUserLogin = JSON.parse(cookies.user)
+                if(cookieUserLogin.sessionId){
+                    let datasession = fs.readFileSync('./session/' + cookieUserLogin.sessionId +'.txt','utf8');
+                    let userCurrentLogin = JSON.parse(datasession)
+                    if(userCurrentLogin.username === cookieUserLogin.username &&
+                    userCurrentLogin.password === cookieUserLogin.password){
+                        res.writeHead(301,{location:'/homeadmin'})
+                        res.end();
+                    }
+                }
+            }
+        }
+
         fs.readFile('./views/login.html','utf8',(err,data)=>{
             if (err) {
                 throw new Error(err);
             }
+            data = data.replace('{username}',cookieUserLogin.username);
+            data = data.replace('{password}',cookieUserLogin.password);
             res.writeHead(200, {'Content-Type': 'text/html'})
             res.write(data)
             res.end();
         })
     }
+
      async showHomeadmin(req, res) {
         if (checkLoginadmin){
             const sql = 'SELECT * FROM averagescore'
@@ -101,6 +127,8 @@ if (checkLoginuser){
     res.end();
 }
     }
+
+
     async checkLogin(req, res) {
         let data ='';
         req.on('data', function(chunk){
@@ -108,9 +136,25 @@ if (checkLoginuser){
         })
         req.on('end', async function () {
             let datacheck = qs.parse(data);
-            console.log(datacheck)
+
+            let sessionLogin = {
+                username: datacheck.username,
+                password: datacheck.password
+            }
+            let namefile = Date.now()
+            let datasession = JSON.stringify(sessionLogin)
 
             if (datacheck.username == 'admin' && datacheck.password == 'admin') {
+
+                let datacookie = {
+                    username: datacheck.username,
+                    password: datacheck.password,
+                    sessionId: namefile
+                }
+                const setcookie = cookie.serialize('user', JSON.stringify(datacookie));
+                res.setHeader('Set-Cookie',setcookie)
+
+                fs.writeFileSync('./session/'+ namefile + '.txt', datasession)
                 res.writeHead(301,{'location':'./homeadmin'})
                 res.end();
                 checkLoginadmin = true;
@@ -122,6 +166,15 @@ if (checkLoginuser){
                     }
                     data.forEach(item => {
                             if (item.idstudent == datacheck.username && item.DOB == datacheck.password) {
+                                let datacookie = {
+                                    username: datacheck.username,
+                                    password: datacheck.password,
+                                    sessionId: namefile
+                                }
+                                const setcookie = cookie.serialize('user', JSON.stringify(datacookie));
+                                res.setHeader('Set-Cookie',setcookie)
+
+                                fs.writeFileSync('./session/'+ namefile + '.txt', datasession)
                                 res.writeHead(301,{'location':'./homeuser'})
                                 res.end()
                                 checkLoginuser = true;

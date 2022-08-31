@@ -10,6 +10,8 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
-    "nodemon": "^2.0.19"
+    "cookie": "^0.5.0",
+    "nodemon": "^2.0.19",
+    "socket.io": "^4.5.1"
   }
 }

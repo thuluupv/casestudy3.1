@@ -5,6 +5,7 @@ const mysql = require('mysql');
 const qs = require('qs');
 const Appcontrol = require('./controller/appcontrol');
 const port = 8088;
+const {Server} = require('socket.io')
 let appcontrol = new Appcontrol();
 
 let server = http.createServer((req, res)=> {
@@ -38,7 +39,6 @@ let server = http.createServer((req, res)=> {
             default:
                 res.end();
         }
-
     }
     else {
         switch (urlpath) {
@@ -55,6 +55,7 @@ let server = http.createServer((req, res)=> {
     }
 
 })
+
 server.listen(port,()=> {
     console.log('server is running')
 })
