@@ -4,10 +4,12 @@ const mysql = require('mysql');
 const url = require("url");
 const cookie = require('cookie');
 const {serialize} = require("cookie");
-
+const http = require('http');
 let checkLoginadmin = false;
 let checkLoginuser = false;
 let indexupdate;
+let namechat ='';
+let namechatlist = [];
 const connection = mysql.createConnection({
     host: 'localhost',
     user: 'root',
@@ -32,15 +34,15 @@ class Appcontrol {
             let cookies = cookie.parse(req.headers.cookie)
             if (cookies && cookies.user){
                 cookieUserLogin = JSON.parse(cookies.user)
-                if(cookieUserLogin.sessionId){
-                    let datasession = fs.readFileSync('./session/' + cookieUserLogin.sessionId +'.txt','utf8');
-                    let userCurrentLogin = JSON.parse(datasession)
-                    if(userCurrentLogin.username === cookieUserLogin.username &&
-                    userCurrentLogin.password === cookieUserLogin.password){
-                        res.writeHead(301,{location:'/homeadmin'})
-                        res.end();
-                    }
-                }
+                // if(cookieUserLogin.sessionId){
+                //     let datasession = fs.readFileSync('./session/' + cookieUserLogin.sessionId +'.txt','utf8');
+                //     let userCurrentLogin = JSON.parse(datasession)
+                //     if(userCurrentLogin.username === cookieUserLogin.username &&
+                //     userCurrentLogin.password === cookieUserLogin.password){
+                //         res.writeHead(301,{location:'/homeadmin'})
+                //         res.end();
+                //     }
+                // }
             }
         }
 
@@ -144,8 +146,9 @@ if (checkLoginuser){
             let namefile = Date.now()
             let datasession = JSON.stringify(sessionLogin)
 
-            if (datacheck.username == 'admin' && datacheck.password == 'admin') {
-
+            if (datacheck.username === 'admin' && datacheck.password === 'admin') {
+                namechat = 'Giáo viên';
+                namechatlist.push(namechat);
                 let datacookie = {
                     username: datacheck.username,
                     password: datacheck.password,
@@ -166,6 +169,8 @@ if (checkLoginuser){
                     }
                     data.forEach(item => {
                             if (item.idstudent == datacheck.username && item.DOB == datacheck.password) {
+                                namechat = item.studentName;
+                                namechatlist.push(namechat);
                                 let datacookie = {
                                     username: datacheck.username,
                                     password: datacheck.password,

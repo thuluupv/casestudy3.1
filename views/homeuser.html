@@ -279,7 +279,6 @@
                 {showlist}
                 </tbody>
             </table>
-
         </div>
     </div>
 </div>
@@ -320,6 +319,31 @@
         </div>
     </div>
 </div>
+<div class="form-chat" style=" margin-left: 285px; margin-bottom: 50px ">
+    <ul id="content" style="height:300px ; width:300px ; background-color: #fff;">
+    </ul>
+    <input type="text" id="message">
+    <button class="send">Gửi</button>
+</div>
+<script src="./socket.io/socket.io.js"></script>
+<script>
+    const socket = io()
+
+    let btn = document.querySelector('.send')
+    let inputMessage = document.querySelector('#message')
+    let contentChat = document.querySelector('#content')
+    btn.addEventListener('click', handleChat)
+    function handleChat(){
+        let message = inputMessage.value
+        socket.emit('on-chat' , message)
+    }
+    socket.on('chat all', (message)=>{
+        let html = `<li>${message}</li>`
+        contentChat.innerHTML += html
+    })
+
+
+</script>
 
 </body>
 </html>
